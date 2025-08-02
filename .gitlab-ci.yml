@@ -5,7 +5,6 @@ default:
 
 stages:
   - build
-  - distribute
 
 variables:
   # Empty tag will become the tag "latest".
@@ -23,18 +22,4 @@ build:
       if [ "$CI_COMMIT_BRANCH" != "$CI_DEFAULT_BRANCH" ]; then
         IMAGE_TAG=":$(echo "$CI_COMMIT_REF_NAME" | sed 's/\.x$//')"
       fi
-    - docker buildx build --platform linux/amd64,linux/arm64 --pull --push -t "${CI_REGISTRY_IMAGE}${IMAGE_TAG}" .
-
-distribute:
-  stage: distribute
-  before_script:
-    - docker login -u "$EXT_REGISTRY_USER" -p "$EXT_REGISTRY_PASSWORD" "$EXT_REGISTRY"
-  script:
-    - |
-      if [ "$CI_COMMIT_BRANCH" != "$CI_DEFAULT_BRANCH" ]; then
-        IMAGE_TAG=":$(echo "$CI_COMMIT_REF_NAME" | sed 's/\.x$//')"
-      fi
-    - docker buildx imagetools create -t "${EXT_REGISTRY_IMAGE}${IMAGE_TAG}" "${CI_REGISTRY_IMAGE}${IMAGE_TAG}"
-  only:
-    variables:
-      - $EXT_REGISTRY
+    - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --pull --push -t "${CI_REGISTRY_IMAGE}${IMAGE_TAG}" .
